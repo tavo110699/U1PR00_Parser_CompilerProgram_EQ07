@@ -1,0 +1,10 @@
+{
+int a;
+a=10;
+int i;
+while(a<20)
+{
+		print (a);
+		a=a+1
+}
+}

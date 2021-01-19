@@ -1,0 +1,12 @@
+{
+int a;
+a=10;
+int i;
+i=1;
+if(a<20){
+		print (a);
+		i=i+1;
+} else{
+ a = a+20;
+}
+}

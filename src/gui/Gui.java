@@ -43,6 +43,12 @@ import semanticAnalyzer.SymbolTableItem;
 import lexer.Lexer;
 import lexer.Token;
 import gui.NumeroLinea;
+import java.awt.Desktop;
+import java.awt.Event;
+import java.io.FileWriter;
+import javax.swing.Action;
+import javax.swing.JOptionPane;
+import javax.swing.text.DefaultEditorKit;
 
 public class Gui extends JFrame implements ActionListener {
 
@@ -50,14 +56,25 @@ public class Gui extends JFrame implements ActionListener {
     private JTextArea editor;
     private JTable tokensTable;
     private JTable semanticTable;
+    //opciones menu archivo
     private JMenuItem menuOpen = new JMenuItem("Abrir Archivo.");
+    private JMenuItem menuSave = new JMenuItem("Guardar Archivo.");
+    private JMenuItem menuClose = new JMenuItem("Salir.");
+    private JMenuItem menuNew = new JMenuItem("Nuevo Archivo.");
+
+    // opciones menu compilar
     private JMenuItem menuCompiler = new JMenuItem("Compilar");
+    //opciones menu ayuda
+    private JMenuItem menuManual = new JMenuItem("Manual de usuario");
+    private JMenuItem menuDoc = new JMenuItem("Documentacion");
+    private JMenuItem menuAbout = new JMenuItem("Acerca de");
+
     private JTree tree;
     private JPanel treePanel = new JPanel(new GridLayout(1, 1));
-   private JScrollPane scroll;
+    private JScrollPane scroll;
 
-         
-  public void writeCode(String msg) {
+
+    public void writeCode(String msg) {
         codeArea.append(msg + "\n");
     }
 
@@ -112,6 +129,7 @@ public class Gui extends JFrame implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
+        //abrir archivo
         if (menuOpen.equals(e.getSource())) {
             JFileChooser fc = new JFileChooser();
             FileNameExtensionFilter filter = new FileNameExtensionFilter("Text Files", "txt", "text");
@@ -130,6 +148,7 @@ public class Gui extends JFrame implements ActionListener {
                     writeConsole(ex.toString());
                 }
             }
+            //ejecuta 
         } else if (menuCompiler.equals(e.getSource())) {
             clearTokenTable();
             clearSemanticTable();
@@ -167,7 +186,37 @@ public class Gui extends JFrame implements ActionListener {
             treePanel.add(treeView);
             treePanel.revalidate();
             treePanel.repaint();
+        } else if (menuNew.equals(e.getSource())) {
+            //crea archivo sin nombre
+            console.setText("");
+            codeArea.setText("");
+            editor.setText("");
+            clearTokenTable();
+            clearSemanticTable();
+        } else if (menuSave.equals(e.getSource())) {
+            //uarda un nuevo archivo txt
+            Exportar();
+        } else if (menuClose.equals(e.getSource())) {
+            //salir de programa
+            System.exit(0);
+        } else if (menuManual.equals(e.getSource())) {
+            try {
+                File path = new File("src/utils/manual.pdf");
+                Desktop.getDesktop().open(path);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        } else if (menuDoc.equals(e.getSource())) {
+            try {
+                File path = new File("src/utils/documentacion.pdf");
+                Desktop.getDesktop().open(path);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        } else if (menuAbout.equals(e.getSource())) {
+            JOptionPane.showMessageDialog(this, "Realizado por: \nCecilia Anonio Bautista \nDaniela Osorio Osorio \nJose Antonio Osorio Osorio \n\nEquipo num 7 \n\nMateria: \nLenguaje y automatas II \n\n Docente:\nManuel Hernandez Hernandez", "Acerca de", JOptionPane.INFORMATION_MESSAGE);
         }
+
     }
 
     private boolean loadFile(String file) throws FileNotFoundException, IOException {
@@ -184,21 +233,72 @@ public class Gui extends JFrame implements ActionListener {
         return true;
     }
 
+    public void Exportar() {
+        try {
+            JFileChooser archivo = new JFileChooser(System.getProperty("user.dir"));
+            archivo.showSaveDialog(this);
+            if (archivo.getSelectedFile() != null) {
+                try ( FileWriter guardado = new FileWriter(archivo.getSelectedFile()+".txt")) {
+                    guardado.write(editor.getText());
+                    JOptionPane.showMessageDialog(rootPane, "El archivo fue guardado con éxito en la ruta establecida");
+                }
+            }
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage());
+        }
+    }
+
     private void createMenu() {
         JMenuBar menuBar = new JMenuBar();
         JMenu menuFile = new JMenu("Archivo");
         JMenu menuRun = new JMenu("Ejecutar");
         JMenu menuEdit = new JMenu("Editar");
         JMenu menuHelp = new JMenu("Ayuda");
-        
+
+        //opciones menu archivo
         menuOpen.addActionListener(this);
+        menuSave.addActionListener(this);
+        menuClose.addActionListener(this);
+        menuNew.addActionListener(this);
+        // opciones menu compilar
         menuCompiler.addActionListener(this);
+        //opciones menu ayuda
+        menuManual.addActionListener(this);
+        menuDoc.addActionListener(this);
+        menuAbout.addActionListener(this);
+
+        //opciones menu archivo
+        menuFile.add(menuNew);
         menuFile.add(menuOpen);
+        menuFile.add(menuSave);
+        menuFile.add(menuClose);
+        // opciones menu edicion
+        Action cutAction = new DefaultEditorKit.CutAction();
+        cutAction.putValue(Action.NAME, "Cortar");
+        cutAction.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke('X', CTRL_DOWN_MASK));
+        menuEdit.add(cutAction);
+
+        Action copyAction = new DefaultEditorKit.CopyAction();
+        copyAction.putValue(Action.NAME, "Copiar");
+        copyAction.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke('C', CTRL_DOWN_MASK));
+        menuEdit.add(copyAction);
+
+        Action pasteAction = new DefaultEditorKit.PasteAction();
+        pasteAction.putValue(Action.NAME, "Pegar");
+        pasteAction.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke('V', CTRL_DOWN_MASK));
+        menuEdit.add(pasteAction);
+        // opciones menu compilar
         menuRun.add(menuCompiler);
+        //opciones menu ayuda
+        menuHelp.add(menuManual);
+        menuHelp.add(menuDoc);
+        menuHelp.add(menuAbout);
+
+        //añadir menus
         menuBar.add(menuFile);
-                menuBar.add(menuEdit);
+        menuBar.add(menuEdit);
         menuBar.add(menuRun);
-menuBar.add(menuHelp);
+        menuBar.add(menuHelp);
         setJMenuBar(menuBar);
     }
 
@@ -212,13 +312,13 @@ menuBar.add(menuHelp);
         JPanel screenPanel = new JPanel(new GridLayout(1, 1));
         JPanel consolePanel = new JPanel(new GridLayout(1, 1));
         JPanel codePanel = new JPanel(new GridLayout(1, 1));
-              
+
         // editor
         panelTitle = BorderFactory.createTitledBorder("Codigo fuente:");
         screenPanel.setBorder(panelTitle);
         editor = new JTextArea();
         editor.setEditable(true);
-         scroll = new JScrollPane(editor);
+        scroll = new JScrollPane(editor);
         screenPanel.add(scroll);
         //numero de lineas jTextArea
         NumeroLinea nl = new NumeroLinea(editor);
@@ -269,7 +369,7 @@ menuBar.add(menuHelp);
         semanticPanel.add(scrollSemantic);
         semanticTable.setEnabled(false);
         // codigo generador
-        panelTitle = BorderFactory.createTitledBorder("Codigo intermedio");
+        panelTitle = BorderFactory.createTitledBorder("Codigo objeto");
         codePanel.setBorder(panelTitle);
         codeArea = new JTextArea();
         JScrollPane scrollCode = new JScrollPane(codeArea);
@@ -279,7 +379,7 @@ menuBar.add(menuHelp);
         tabbedPane.addTab("lexico", tokenPanel);
         tabbedPane.addTab("sintactico", treePanel);
         tabbedPane.addTab(" analizador semantico", semanticPanel);
-        tabbedPane.addTab("Codigo intermedio", codePanel);
+        tabbedPane.addTab("Codigo objeto", codePanel);
         tabbedPane.setSelectedIndex(3);
         // main frame
         topPanel.add(screenPanel);
@@ -289,7 +389,19 @@ menuBar.add(menuHelp);
         add(topPanel, BorderLayout.CENTER);
         add(downPanel, BorderLayout.SOUTH);
         // editor hotkey
-        menuCompiler.setAccelerator(KeyStroke.getKeyStroke('C', CTRL_DOWN_MASK));
+        //opciones menu archivo
+        menuOpen.setAccelerator(KeyStroke.getKeyStroke('O', CTRL_DOWN_MASK));
+        menuSave.setAccelerator(KeyStroke.getKeyStroke('S', CTRL_DOWN_MASK));
+        menuClose.setAccelerator(KeyStroke.getKeyStroke('Q', CTRL_DOWN_MASK));
+        menuNew.setAccelerator(KeyStroke.getKeyStroke('N', CTRL_DOWN_MASK));
+
+        // opciones menu compilar
+        menuCompiler.setAccelerator(KeyStroke.getKeyStroke('R', CTRL_DOWN_MASK));
+        //opciones menu ayuda
+        menuManual.setAccelerator(KeyStroke.getKeyStroke('H', CTRL_DOWN_MASK));
+        menuDoc.setAccelerator(KeyStroke.getKeyStroke('L', CTRL_DOWN_MASK));
+        menuAbout.setAccelerator(KeyStroke.getKeyStroke('I', CTRL_DOWN_MASK));
+
     }
 
     public Gui(String title) throws IOException {
@@ -307,7 +419,6 @@ menuBar.add(menuHelp);
     }
 
     public static void main(String[] args) throws FileNotFoundException, IOException {
-
 
         Gui gui = new Gui("U1PR00_Parser_CompilerProgram_EQ07");
         gui.setVisible(true);
